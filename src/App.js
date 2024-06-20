@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import * as arrow from "apache-arrow";
+import * as aq from "arquero";
+import _ from "lodash";
 
 function ArrowDataComponent() {
   const [data, setData] = useState([]);
@@ -22,23 +24,59 @@ function ArrowDataComponent() {
       extractedData.push(rowJson);
     }
 
+    console.log("extracted data:", extractedData);
     return extractedData;
   }
 
   useEffect(() => {
     const fetchArrowData = async () => {
       try {
-        const response = await axios.get(
-          "http://localhost:8080/getProperties",
-          {
-            responseType: "arraybuffer",
-          }
-        );
+        const response = await axios.get("http://localhost:8080/getArrowData", {
+          responseType: "arraybuffer",
+        });
+
+        console.log("reponse ", response);
 
         const buffer = new Uint8Array(response.data);
         const table = arrow.tableFromIPC(buffer);
 
-        console.log(table);
+        // const groupedTable = table
+        //   .groupBy("favoriteFruit") // Group by 'favoriteFruit'
+        //   .agg({ count: aq.op.countAll() }) // Aggregate by counting all rows in each group
+        //   .execute(); // Execute the aggregation
+
+        // console.log("groupedTable: ", groupedTable);
+        console.log("table", table);
+
+        // Assuming arrowTable is your Arrow table and fieldName is the field to group by
+        // const columns = table.schema.fields.map((field) => field.name);
+        // const data = columns.map((column) =>
+        //   table.getColumnByName(column).toArray()
+        // );
+
+        // Combine data into objects
+        // const combinedData = data[0].map((_, i) =>
+        //   Object.fromEntries(columns.map((col, j) => [col, data[j][i]]))
+        // );
+
+        // Group data based on fieldName
+        // const groupedData = _.groupBy(combinedData, "favoriteFruit");
+
+        // Perform aggregation (e.g., sum) on grouped data
+        // const aggregatedData = Object.keys(groupedData).map((key) => {
+        //   return {
+        //     ["favoriteFruit"]: key,
+        //     // Perform aggregation here (e.g., sum of a field)
+        //     // Example: sum of 'value' field
+        //     sumValue: _.sumBy(groupedData[key], "orange"),
+        //   };
+        // });
+
+        // Convert aggregated data back to Arrow table
+        // const aggregatedTable = arrow.Table.new(aggregatedData);
+
+        // console.log("aggregated table:", aggregatedTable);
+
         const extractedData = extractDataFromTable(table);
         setData(extractedData);
         // console.log(extractedData);
@@ -78,15 +116,21 @@ function ArrowDataComponent() {
       <table>
         <thead>
           <tr>
-            <th>Name</th>
-            <th>Age</th>
+            <th>_id</th>
+            <th>index</th>
+            <th>balance</th>
+            <th>age</th>
+            <th>fav fruit</th>
           </tr>
         </thead>
         <tbody>
           {data.map((row, index) => (
             <tr key={index}>
-              <td>{row.name}</td>
-              <td>{row.value}</td>
+              <td>{row._id}</td>
+              <td>{row.index}</td>
+              <td>{row.balance}</td>
+              <td>{row.age}</td>
+              <td>{row.favoriteFruit}</td>
             </tr>
           ))}
         </tbody>
